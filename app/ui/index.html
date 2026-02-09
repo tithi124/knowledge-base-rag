@@ -1,88 +1,636 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>PDF Knowledge Chat</title>
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 900px; margin: 24px auto; }
-    #log { border: 1px solid #ddd; padding: 12px; height: 420px; overflow: auto; border-radius: 10px; }
-    .msg { margin: 10px 0; }
-    .you { font-weight: 700; }
-    .bot { font-weight: 700; }
-    textarea { width: 100%; height: 70px; }
-    button { padding: 10px 14px; border-radius: 10px; border: 1px solid #ddd; cursor: pointer; }
-    .cite { font-size: 12px; color: #444; margin-top: 6px; }
+    :root{
+      --bg: #0b1220;
+      --panel: #0f1b33;
+      --card: rgba(255,255,255,0.06);
+      --card2: rgba(255,255,255,0.09);
+      --border: rgba(255,255,255,0.10);
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.70);
+      --muted2: rgba(255,255,255,0.55);
+      --accent: #5eead4;      /* teal */
+      --accent2:#60a5fa;      /* blue */
+      --danger: #fb7185;      /* rose */
+      --ok: #34d399;          /* green */
+      --shadow: 0 12px 40px rgba(0,0,0,0.35);
+      --radius: 16px;
+      --radius2: 12px;
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{ box-sizing: border-box; }
+    body{
+      margin: 0;
+      font-family: var(--font);
+      color: var(--text);
+      background:
+        radial-gradient(1200px 700px at 15% 10%, rgba(94,234,212,0.12), transparent 55%),
+        radial-gradient(900px 600px at 85% 15%, rgba(96,165,250,0.10), transparent 55%),
+        radial-gradient(900px 600px at 50% 90%, rgba(167,139,250,0.10), transparent 55%),
+        var(--bg);
+      min-height: 100vh;
+    }
+    a{ color: var(--accent2); text-decoration: none; }
+    a:hover{ text-decoration: underline; }
+
+    .container{
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px 18px 24px;
+    }
+
+    /* Header */
+    .header{
+      display:flex;
+      align-items:flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+    .title{
+      display:flex;
+      flex-direction:column;
+      gap: 6px;
+    }
+    .title h1{
+      margin:0;
+      font-size: 22px;
+      letter-spacing: 0.2px;
+      font-weight: 700;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .badge{
+      font-size: 12px;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(255,255,255,0.04);
+    }
+    .subtitle{
+      margin:0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+      max-width: 680px;
+    }
+    .top-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap: wrap;
+      align-items:center;
+      justify-content:flex-end;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.04);
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .dot{
+      width:8px;height:8px;border-radius:50%;
+      background: var(--ok);
+      box-shadow: 0 0 0 4px rgba(52,211,153,0.15);
+    }
+
+    /* Layout */
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 14px;
+    }
+    @media (max-width: 920px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.04));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card-header{
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 12px;
+      background: rgba(255,255,255,0.03);
+    }
+    .card-header h2{
+      margin:0;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: .2px;
+      color: rgba(255,255,255,0.86);
+      display:flex;
+      align-items:center;
+      gap: 10px;
+    }
+    .icon{
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      display:grid;
+      place-items:center;
+      background: rgba(94,234,212,0.12);
+      border: 1px solid rgba(94,234,212,0.25);
+    }
+    .card-body{
+      padding: 14px;
+    }
+
+    /* Buttons */
+    .btn{
+      appearance:none;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor:pointer;
+      transition: transform .05s ease, background .15s ease, border-color .15s ease;
+      display:inline-flex;
+      gap: 10px;
+      align-items:center;
+      justify-content:center;
+      user-select:none;
+      white-space: nowrap;
+    }
+    .btn:hover{ background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.16); }
+    .btn:active{ transform: translateY(1px); }
+    .btn-primary{
+      background: linear-gradient(135deg, rgba(94,234,212,0.22), rgba(96,165,250,0.22));
+      border-color: rgba(94,234,212,0.30);
+    }
+    .btn-primary:hover{
+      background: linear-gradient(135deg, rgba(94,234,212,0.28), rgba(96,165,250,0.28));
+    }
+    .btn-danger{
+      border-color: rgba(251,113,133,0.35);
+      background: rgba(251,113,133,0.10);
+    }
+
+    /* File input */
+    .file-row{
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+    }
+    .file-input{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      flex-wrap: wrap;
+    }
+    input[type="file"]{
+      color: var(--muted);
+      font-size: 13px;
+    }
+    input[type="file"]::-webkit-file-upload-button{
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 9px 12px;
+      font-weight: 700;
+      cursor:pointer;
+      margin-right: 10px;
+    }
+    input[type="file"]::-webkit-file-upload-button:hover{
+      background: rgba(255,255,255,0.08);
+    }
+
+    .status{
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items:center;
+    }
+    .status-pill{
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+    }
+    .status-pill.ok{
+      border-color: rgba(52,211,153,0.35);
+      background: rgba(52,211,153,0.10);
+      color: rgba(255,255,255,0.88);
+    }
+    .status-pill.err{
+      border-color: rgba(251,113,133,0.35);
+      background: rgba(251,113,133,0.10);
+      color: rgba(255,255,255,0.88);
+    }
+
+    /* Chat */
+    .chat-wrap{
+      height: 620px;
+      display:flex;
+      flex-direction:column;
+    }
+    .log{
+      flex: 1;
+      padding: 14px;
+      overflow:auto;
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+      scroll-behavior: smooth;
+    }
+    .bubble{
+      max-width: 92%;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 10px 12px;
+      line-height: 1.42;
+      font-size: 13px;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.16);
+    }
+    .bubble.you{
+      margin-left:auto;
+      background: linear-gradient(135deg, rgba(96,165,250,0.18), rgba(94,234,212,0.14));
+      border-color: rgba(96,165,250,0.22);
+    }
+    .bubble.bot{
+      margin-right:auto;
+      background: rgba(255,255,255,0.05);
+    }
+    .meta{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 12px;
+      margin-bottom: 6px;
+      font-size: 11px;
+      color: var(--muted2);
+    }
+    .who{
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.82);
+    }
+    .avatar{
+      width: 22px;
+      height: 22px;
+      border-radius: 8px;
+      display:grid;
+      place-items:center;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      font-size: 12px;
+    }
+
+    /* Citations */
+    details.cites{
+      margin-top: 10px;
+      border-top: 1px dashed rgba(255,255,255,0.16);
+      padding-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    details.cites summary{
+      cursor:pointer;
+      user-select:none;
+      font-weight: 700;
+      color: rgba(255,255,255,0.84);
+      margin-bottom: 8px;
+    }
+    .cite-item{
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.04);
+      margin-bottom: 8px;
+    }
+    .cite-top{
+      display:flex;
+      justify-content:space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 6px;
+      color: rgba(255,255,255,0.86);
+      font-weight: 650;
+      font-size: 12px;
+    }
+    .cite-excerpt{
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    /* Composer */
+    .composer{
+      padding: 12px;
+      border-top: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      display:flex;
+      gap: 10px;
+      align-items:flex-end;
+    }
+    textarea{
+      width: 100%;
+      min-height: 44px;
+      max-height: 140px;
+      resize: vertical;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.18);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 13px;
+      outline: none;
+    }
+    textarea:focus{
+      border-color: rgba(94,234,212,0.40);
+      box-shadow: 0 0 0 4px rgba(94,234,212,0.10);
+    }
+
+    .kbd{
+      font-size: 12px;
+      color: var(--muted2);
+      margin-top: 10px;
+    }
+
+    /* Toast-ish */
+    .hint{
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .row{
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
   </style>
 </head>
+
 <body>
-  <h2>PDF Knowledge Chat</h2>
+  <div class="container">
 
-  <h3>1) Ingest PDFs</h3>
-  <input id="files" type="file" multiple accept="application/pdf"/>
-  <button onclick="ingest()">Upload & Ingest</button>
-  <div id="ingestStatus"></div>
+    <div class="header">
+      <div class="title">
+        <h1>
+          PDF Knowledge Chat
+          <span class="badge">Local RAG • FastAPI • Mistral</span>
+        </h1>
+        <p class="subtitle">
+          Upload PDFs, build a lightweight local index (no external RAG/search libraries), and chat with answers grounded in retrieved evidence.
+          Citations are included for transparency.
+        </p>
+      </div>
 
-  <h3>2) Chat</h3>
-  <div id="log"></div>
-  <textarea id="q" placeholder="Ask a question about the PDFs..."></textarea>
-  <button onclick="ask()">Send</button>
+      <div class="top-actions">
+        <span class="pill"><span class="dot"></span>Server: <span id="serverAddr">http://localhost</span></span>
+        <span class="pill">Docs: <a href="/docs" target="_blank" rel="noopener">/docs</a></span>
+      </div>
+    </div>
+
+    <div class="grid">
+
+      <!-- Ingest Card -->
+      <div class="card">
+        <div class="card-header">
+          <h2><span class="icon">⬆️</span> Ingest PDFs</h2>
+          <button class="btn btn-danger" id="clearBtn" title="Clears only the on-screen chat (does not delete index)">Clear chat</button>
+        </div>
+        <div class="card-body">
+          <div class="file-row">
+            <div class="file-input">
+              <input id="files" type="file" multiple accept="application/pdf"/>
+              <button class="btn btn-primary" id="ingestBtn" onclick="ingest()">
+                <span>Upload & Ingest</span>
+              </button>
+            </div>
+            <div class="hint">
+              Tip: start with 1–3 PDFs. If a PDF is scanned (image-only), text extraction may be limited.
+            </div>
+
+            <div class="status" id="ingestStatusRow" style="display:none;">
+              <span class="status-pill" id="ingestStatusPill">Status</span>
+              <span id="ingestStatusText"></span>
+            </div>
+
+            <div class="kbd">
+              Endpoints: <code>/ingest</code> (upload) • <code>/query</code> (chat)
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Card -->
+      <div class="card chat-wrap">
+        <div class="card-header">
+          <h2><span class="icon" style="background: rgba(96,165,250,0.12); border-color: rgba(96,165,250,0.25);">💬</span> Chat</h2>
+          <span class="pill" id="modePill">Mode: ready</span>
+        </div>
+
+        <div id="log" class="log"></div>
+
+        <div class="composer">
+          <textarea id="q" placeholder="Ask a question about the PDFs (e.g., “Summarize section 2” or “What’s the safety stock definition?”)"></textarea>
+          <button class="btn btn-primary" style="min-width:110px;" onclick="ask()" id="sendBtn">Send</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
 
 <script>
-const log = document.getElementById("log");
+  const log = document.getElementById("log");
+  const ingestBtn = document.getElementById("ingestBtn");
+  const sendBtn = document.getElementById("sendBtn");
+  const modePill = document.getElementById("modePill");
+  const serverAddr = document.getElementById("serverAddr");
 
-function addLine(who, text) {
-  const div = document.createElement("div");
-  div.className = "msg";
-  div.innerHTML = `<div class="${who === 'You' ? 'you' : 'bot'}">${who}:</div><div>${text}</div>`;
-  log.appendChild(div);
-  log.scrollTop = log.scrollHeight;
-}
+  const ingestStatusRow = document.getElementById("ingestStatusRow");
+  const ingestStatusPill = document.getElementById("ingestStatusPill");
+  const ingestStatusText = document.getElementById("ingestStatusText");
+  const clearBtn = document.getElementById("clearBtn");
 
-async function ingest() {
-  const files = document.getElementById("files").files;
-  if (!files.length) return;
+  serverAddr.textContent = window.location.origin;
 
-  const fd = new FormData();
-  for (const f of files) fd.append("files", f);
+  function timeNow() {
+    const d = new Date();
+    return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  }
 
-  const res = await fetch("/ingest", { method: "POST", body: fd });
-  const data = await res.json();
-  document.getElementById("ingestStatus").innerText =
-    `Ingested: ${data.files_ingested} files, added ${data.chunks_added} chunks`;
-}
+  function escapeHtml(s){
+    return s.replace(/[&<>"']/g, m => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"
+    }[m]));
+  }
 
-async function ask() {
-  const q = document.getElementById("q").value.trim();
-  if (!q) return;
+  function setMode(text) {
+    modePill.textContent = "Mode: " + text;
+  }
 
-  addLine("You", q);
-  document.getElementById("q").value = "";
+  function setIngestStatus(kind, text) {
+    ingestStatusRow.style.display = "flex";
+    ingestStatusPill.className = "status-pill " + (kind === "ok" ? "ok" : (kind === "err" ? "err" : ""));
+    ingestStatusPill.textContent = (kind === "ok" ? "Success" : (kind === "err" ? "Error" : "Info"));
+    ingestStatusText.textContent = text;
+  }
 
-  const res = await fetch("/query", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({ question: q })
+  function addBubble(who, html, citations) {
+    const bubble = document.createElement("div");
+    bubble.className = "bubble " + (who === "You" ? "you" : "bot");
+
+    const avatar = who === "You" ? "Y" : "AI";
+    const meta = `
+      <div class="meta">
+        <div class="who"><span class="avatar">${avatar}</span>${who}</div>
+        <div>${timeNow()}</div>
+      </div>
+    `;
+
+    let citesHtml = "";
+    if (citations && citations.length) {
+      const items = citations.map((c, idx) => {
+        const pages = (c.page_start ? `p.${c.page_start}` : "") +
+                      (c.page_end && c.page_end !== c.page_start ? `-${c.page_end}` : "");
+        return `
+          <div class="cite-item">
+            <div class="cite-top">
+              <div>[${idx+1}] ${escapeHtml(c.filename)} ${pages ? "• " + pages : ""}</div>
+              <div>score ${Number(c.score).toFixed(3)}</div>
+            </div>
+            <div class="cite-excerpt">${escapeHtml(c.excerpt || "")}</div>
+          </div>
+        `;
+      }).join("");
+
+      citesHtml = `
+        <details class="cites">
+          <summary>Citations (${citations.length})</summary>
+          ${items}
+        </details>
+      `;
+    }
+
+    bubble.innerHTML = meta + `<div>${html}</div>` + citesHtml;
+    log.appendChild(bubble);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  clearBtn.addEventListener("click", () => {
+    log.innerHTML = "";
+    setMode("ready");
   });
 
-  const data = await res.json();
+  async function ingest() {
+    const files = document.getElementById("files").files;
+    if (!files.length) {
+      setIngestStatus("err", "Please choose at least one PDF file.");
+      return;
+    }
 
-  let answer = data.answer;
-  if (data.refusal_reason) {
-    answer += `<div class="cite">Reason: ${data.refusal_reason}</div>`;
+    const fd = new FormData();
+    for (const f of files) fd.append("files", f);
+
+    ingestBtn.disabled = true;
+    setMode("ingesting");
+    setIngestStatus("info", "Uploading and processing PDFs…");
+
+    try {
+      const res = await fetch("/ingest", { method: "POST", body: fd });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setIngestStatus("err", data.detail || "Ingestion failed.");
+      } else {
+        setIngestStatus("ok", `Ingested ${data.files_ingested} file(s), added ${data.chunks_added} chunk(s).`);
+      }
+    } catch (e) {
+      setIngestStatus("err", "Network error while ingesting. Is the server running?");
+    } finally {
+      ingestBtn.disabled = false;
+      setMode("ready");
+    }
   }
 
-  if (data.citations && data.citations.length) {
-    answer += `<div class="cite"><b>Citations:</b><br/>` +
-      data.citations.map((c,i) => {
-        const pages = (c.page_start ? ` p.${c.page_start}` : "") +
-                      (c.page_end && c.page_end !== c.page_start ? `-${c.page_end}` : "");
-        return `[${i+1}] ${c.filename}${pages} (score ${c.score.toFixed(3)}) — ${c.excerpt}`;
-      }).join("<br/>") +
-      `</div>`;
+  async function ask() {
+    const qEl = document.getElementById("q");
+    const q = qEl.value.trim();
+    if (!q) return;
+
+    addBubble("You", escapeHtml(q));
+    qEl.value = "";
+
+    sendBtn.disabled = true;
+    setMode("thinking");
+
+    // small typing indicator
+    const typing = document.createElement("div");
+    typing.className = "bubble bot";
+    typing.innerHTML = `
+      <div class="meta">
+        <div class="who"><span class="avatar">AI</span>Bot</div>
+        <div>${timeNow()}</div>
+      </div>
+      <div style="color: rgba(255,255,255,0.75);">Thinking…</div>
+    `;
+    log.appendChild(typing);
+    log.scrollTop = log.scrollHeight;
+
+    try {
+      const res = await fetch("/query", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ question: q })
+      });
+      const data = await res.json();
+
+      typing.remove();
+
+      let html = escapeHtml(data.answer || "");
+      if (data.refusal_reason) {
+        html += `<div style="margin-top:10px; color: rgba(251,113,133,0.95); font-weight:700;">Reason: ${escapeHtml(data.refusal_reason)}</div>`;
+      }
+      addBubble("Bot", html, data.citations || []);
+    } catch (e) {
+      typing.remove();
+      addBubble("Bot", "Network error while querying. Is the server running?");
+    } finally {
+      sendBtn.disabled = false;
+      setMode("ready");
+    }
   }
 
-  addLine("Bot", answer);
-}
+  // Send on Cmd/Ctrl+Enter
+  document.getElementById("q").addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+      ask();
+    }
+  });
 </script>
 </body>
 </html>
