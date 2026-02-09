@@ -4,8 +4,8 @@ DATA_DIR = os.getenv("DATA_DIR", "data")
 UPLOAD_DIR = os.path.join(DATA_DIR, "uploads")
 INDEX_DIR = os.path.join(DATA_DIR, "index")
 
-# Use env var if set; otherwise use provided key
-MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY", "CF2DvjIoshzasO0mtBkPj44fo2nXDwPk")
+# Use the set env var
+MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
 
 # Models
 EMBED_MODEL = os.getenv("EMBED_MODEL", "mistral-embed")
