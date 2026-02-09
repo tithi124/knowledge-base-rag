@@ -1,7 +1,8 @@
 # PDF Knowledge Chat
 
 A lightweight **Retrieval-Augmented Generation (RAG)** system that allows users to upload PDF documents and ask questions grounded strictly in the uploaded knowledge base.  
-The system is implemented **from scratch** using **FastAPI** and **Mistral AI**, without relying on any external RAG, search, or vector database libraries.
+
+The system is implemented using **FastAPI** and **Mistral AI**, without relying on any external RAG, search, or vector database libraries.
 
 ---
 
